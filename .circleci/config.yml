@@ -1,9 +1,11 @@
 version: 2.1
+orbs:
+  win: circleci/windows@5.0
 
 jobs:
   playit-setup:
-    machine:
-      image: windows-server-2022
+    executor:
+      name: win/server-2019
     steps:
       - checkout
 
@@ -33,6 +35,12 @@ jobs:
             Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
 
       - run:
+          name: Create Local User
+          shell: powershell.exe
+          command: |
+            New-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force) -FullName "Runner Admin" -Description "Local user for CircleCI"
+
+      - run:
           name: Set Local User Password
           shell: powershell.exe
           command: |
@@ -47,10 +55,10 @@ jobs:
             Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
 
       - run:
-          name: Keep the Job Alive
+          name: Keep the Job Alive (MUST BE SHORTENED OR REMOVED FOR FREE TIER)
           shell: powershell.exe
           command: |
-            Start-Sleep -Seconds 11800
+            Start-Sleep -Seconds 300 # Reduced to 5 minutes for testing
 
 workflows:
   version: 2
