@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   playit-setup:
     machine:
-      image: windows-server-2022-gui
+      image: windows-server-2022:2022.0.202309-rc
     steps:
       - checkout
 
