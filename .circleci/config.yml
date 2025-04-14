@@ -1,0 +1,59 @@
+version: 2.1
+
+jobs:
+  playit-setup:
+    machine:
+      image: windows-server-2022-gui
+    steps:
+      - checkout
+
+      - run:
+          name: Download and Install Playit
+          shell: powershell.exe
+          command: |
+            Invoke-WebRequest -Uri "https://github.com/playit-cloud/playit-agent/releases/download/v0.15.26/playit-windows-x86_64-signed.exe" -OutFile "$env:USERPROFILE\playit.exe"
+            Start-Sleep -Seconds 5
+
+      - run:
+          name: Enable Terminal Services
+          shell: powershell.exe
+          command: |
+            Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+
+      - run:
+          name: Enable Remote Desktop Firewall
+          shell: powershell.exe
+          command: |
+            Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+      - run:
+          name: Set User Authentication
+          shell: powershell.exe
+          command: |
+            Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+      - run:
+          name: Set Local User Password
+          shell: powershell.exe
+          command: |
+            Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force)
+
+      - run:
+          name: Start Playit and Set Up RDP Tunnel
+          shell: powershell.exe
+          command: |
+            $token = "0a689350bfc031d0727bb6b7599b2a3cc128df5f777c432c68caeba76eb64d95"
+            Start-Process -FilePath "$env:USERPROFILE\playit.exe" -ArgumentList "--secret $token" -NoNewWindow -Wait
+            Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
+
+      - run:
+          name: Keep the Job Alive
+          shell: powershell.exe
+          command: |
+            Start-Sleep -Seconds 11800
+
+workflows:
+  version: 2
+  playit-workflow:
+    jobs:
+      - playit-setup
