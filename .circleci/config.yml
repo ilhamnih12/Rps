@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   playit-setup:
     machine:
-      image: windows-server-2022-gui
+      image: windows-server-2019-vs2019:current
     steps:
       - checkout
 
@@ -47,10 +47,10 @@ jobs:
             Start-Process -FilePath "$env:USERPROFILE\playit.exe" -NoNewWindow
 
       - run:
-          name: Keep the Job Alive
+          name: Keep the Job Alive (MUST BE SHORTENED OR REMOVED FOR FREE TIER)
           shell: powershell.exe
           command: |
-            Start-Sleep -Seconds 11800
+            Start-Sleep -Seconds 300 # Reduced to 5 minutes for testing
 
 workflows:
   version: 2
