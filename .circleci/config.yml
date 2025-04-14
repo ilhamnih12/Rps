@@ -5,7 +5,7 @@ orbs:
 jobs:
   playit-setup:
     executor:
-      name: win/server-2019
+      name: win/server-2022
     steps:
       - checkout
 
@@ -35,28 +35,10 @@ jobs:
             Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
 
       - run:
-          name: Create Local User
-          shell: powershell.exe
-          command: |
-            New-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force) -FullName "Runner Admin" -Description "Local user for CircleCI"
-
-      - run:
-          name: Add User to Remote Desktop Users Group
-          shell: powershell.exe
-          command: |
-            Add-LocalGroupMember -Group "Remote Desktop Users" -Member "runneradmin"
-
-      - run:
-          name: Wait for User Creation and Group Membership
-          shell: powershell.exe
-          command: |
-            Start-Sleep -Seconds 10 # Beri waktu lebih untuk pendaftaran pengguna dan keanggotaan grup
-
-      - run:
           name: Set Local User Password
           shell: powershell.exe
           command: |
-            Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force)
+            Set-LocalUser -Name "circleci" -Password (ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force)
 
       - run:
           name: Start Playit and Set Up RDP Tunnel
@@ -70,7 +52,7 @@ jobs:
           name: Keep the Job Alive (MUST BE SHORTENED OR REMOVED FOR FREE TIER)
           shell: powershell.exe
           command: |
-            Start-Sleep -Seconds 300 # Dikurangi menjadi 5 menit untuk pengujian
+            Start-Sleep -Seconds 300
 
 workflows:
   version: 2
