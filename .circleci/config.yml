@@ -1,9 +1,11 @@
 version: 2.1
+orbs:
+  win: circleci/windows@5.0
 
 jobs:
   playit-setup:
-    machine:
-      image: windows-server-2019-vs2019:current
+    executor:
+      name: win/server-2019
     steps:
       - checkout
 
