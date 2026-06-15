@@ -1,4 +1,4 @@
-name: LocalToNet RDP - Auto Port
+name: LocalToNet RDP Fixed
 
 on:
   push:
@@ -16,7 +16,6 @@ jobs:
       - name: Enable Remote Desktop
         shell: powershell
         run: |
-          # Aktifkan fitur RDP di Windows Runner
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
@@ -24,33 +23,30 @@ jobs:
       - name: Set User Password
         shell: powershell
         run: |
-          # Mengatur password agar bisa login via RDP
           $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
-          Write-Host "User: $env:USERNAME"
-          Write-Host "Pass: p@ssw0rd!"
 
-      - name: Start LocalToNet SSH Tunnel (Auto Port)
+      - name: Start LocalToNet SSH Tunnel
         shell: powershell
         run: |
-          # Menggunakan -R0 untuk alokasi port otomatis dari server LocalToNet
-          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R0:127.0.0.1:3389" -NoNewWindow
+          # Perbaikan: Menggunakan port 4272 sesuai foto dashboard
+          # Format: -R [RemotePort]:[LocalIP]:[LocalPort]
+          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 4272:127.0.0.1:3389" -NoNewWindow
           
           Write-Host "-------------------------------------------------------"
-          Write-Host "TUNNEL SEDANG BERJALAN!"
-          Write-Host "Silakan cek Dashboard LocalToNet Anda untuk melihat PORT."
-          Write-Host "Link Dashboard: https://localto.net/dashboard"
+          Write-Host "TUNNEL BERHASIL AKTIF!"
+          Write-Host "Alamat RDP: 42jdsvf1bb.localto.net:4272"
+          Write-Host "Username  : runneradmin"
+          Write-Host "Password  : p@ssw0rd!"
           Write-Host "-------------------------------------------------------"
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          Write-Host "RDP Aktif. Sesi ini akan tetap terbuka selama 6 jam ke depan."
+          Write-Host "RDP Aktif. Jangan tutup tab GitHub Actions ini."
           $i = 0
-          # Loop selama 360 menit (6 jam)
           while($i -lt 360) {
-            $currentTime = Get-Date -Format "HH:mm:ss"
-            Write-Host "Keep Alive - Pulse at $currentTime (Masih berjalan...)"
+            Write-Host "Keep Alive - Pulse $(Get-Date)"
             Start-Sleep -Seconds 60
             $i++
           }
