@@ -2,21 +2,18 @@ name: Chrome Remote Desktop RDP
 
 on:
   workflow_dispatch:
-    inputs:
-      auth_code:
-        description: 'Masukkan Kode PowerShell dari Google Remote Desktop'
-        required: true
 
 jobs:
   setup-crd:
     runs-on: windows-2022
+
     steps:
       - name: Download & Install Chrome Remote Desktop
         shell: powershell
         run: |
           $installer = "$env:TEMP\crd.msi"
           Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile $installer
-          Start-Process msiexec.exe -ArgumentList "/i $installer /qn /norestart" -Wait
+          Start-Process msiexec.exe -ArgumentList "/i `"$installer`" /qn /norestart" -Wait
 
       - name: Set User Password
         shell: powershell
@@ -27,15 +24,20 @@ jobs:
       - name: Activate Chrome Remote Desktop
         shell: powershell
         run: |
-          & "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" --code="${{ github.event.inputs.auth_code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME -Pin 123456
+          & "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" `
+            --code="4/0AdkVLPz4jfS49WdPh6oFi7lpQrO2dQnh2UtI8w4kyyiK-PaSxwIOEFMDfG82mQpwNdLHbQ" `
+            --redirect-url="https://remotedesktop.google.com/_/oauthredirect" `
+            --name="$Env:COMPUTERNAME" `
+            --pin="123456"
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
           Write-Host "RDP Siap! Buka https://remotedesktop.google.com/access"
           Write-Host "Gunakan PIN: 123456"
+
           $i = 0
-          while($i -lt 360) {
+          while ($i -lt 360) {
             Write-Host "Keep Alive - Pulse $(Get-Date)"
             Start-Sleep -Seconds 60
             $i++
