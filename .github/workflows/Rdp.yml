@@ -1,0 +1,43 @@
+name: Chrome Remote Desktop RDP
+
+on:
+  workflow_dispatch:
+    inputs:
+      auth_code:
+        description: 'Masukkan Kode PowerShell dari Google Remote Desktop'
+        required: true
+
+jobs:
+  setup-crd:
+    runs-on: windows-2022
+    steps:
+      - name: Download & Install Chrome Remote Desktop
+        shell: powershell
+        run: |
+          $installer = "$env:TEMP\crd.msi"
+          Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile $installer
+          Start-Process msiexec.exe -ArgumentList "/i $installer /qn /norestart" -Wait
+
+      - name: Set User Password
+        shell: powershell
+        run: |
+          $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
+          Set-LocalUser -Name $env:USERNAME -Password $password
+
+      - name: Activate Chrome Remote Desktop
+        shell: powershell
+        run: |
+          # Ini akan menjalankan kode yang Anda paste saat menjalankan workflow
+          ${{ github.event.inputs.auth_code }} -Pin 123456
+
+      - name: Keep Alive (6 Hours)
+        shell: powershell
+        run: |
+          Write-Host "RDP Siap! Buka https://remotedesktop.google.com/access"
+          Write-Host "Gunakan PIN: 123456"
+          $i = 0
+          while($i -lt 360) {
+            Write-Host "Keep Alive - Pulse $(Get-Date)"
+            Start-Sleep -Seconds 60
+            $i++
+          }
