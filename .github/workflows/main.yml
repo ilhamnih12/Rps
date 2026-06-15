@@ -1,4 +1,4 @@
-name: LocalToNet RDP (Official CLI Method)
+name: LocalToNet RDP Final
 
 on:
   push:
@@ -16,6 +16,7 @@ jobs:
       - name: Enable Remote Desktop
         shell: powershell
         run: |
+          # Mengaktifkan RDP dan Firewall
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
@@ -23,36 +24,50 @@ jobs:
       - name: Set User Password
         shell: powershell
         run: |
+          # Set password untuk user runneradmin
           $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Password: p@ssw0rd!"
 
-      - name: Install & Start LocalToNet CLI
+      - name: Download and Run LocalToNet CLI
         shell: powershell
         run: |
-          # 1. Download LocalToNet CLI
-          Invoke-WebRequest -Uri "https://localto.net/download/localtonet-windows-x64.zip" -OutFile "localtonet.zip"
-          Expand-Archive -Path "localtonet.zip" -DestinationPath "."
+          # 1. Download menggunakan link yang Anda berikan
+          Write-Host "Downloading LocalToNet CLI..."
+          $url = "https://localtonet.com/download/localtonet-win-64.zip"
+          Invoke-WebRequest -Uri $url -OutFile "ltn.zip"
           
-          # 2. Jalankan dengan AuthToken Anda
-          # Token diambil dari username SSH yang Anda berikan tadi
-          $authToken = "L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw"
+          # 2. Extract file ke folder LTN
+          Write-Host "Extracting..."
+          Expand-Archive -Path "ltn.zip" -DestinationPath "LTN"
           
-          Write-Host "Starting LocalToNet..."
-          Start-Process ".\localtonet.exe" -ArgumentList "authtoken $authToken" -NoNewWindow
+          # 3. Cari file .exe (untuk memastikan lokasi file tepat)
+          $ltnExe = Get-ChildItem -Path ".\LTN" -Filter "localtonet.exe" -Recurse | Select-Object -First 1
           
-          Write-Host "-------------------------------------------------------"
-          Write-Host "LOKASI CEK PORT:"
-          Write-Host "Buka: https://localto.net/tunnel/tcpudp"
-          Write-Host "Gunakan alamat & port yang muncul di kolom 'Url'"
-          Write-Host "-------------------------------------------------------"
+          if ($ltnExe) {
+              Write-Host "Menjalankan LocalToNet..."
+              $token = "L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw"
+              
+              # Menjalankan dengan perintah authtoken agar semua tunnel di dashboard aktif
+              Start-Process $ltnExe.FullName -ArgumentList "authtoken $token" -NoNewWindow
+              
+              Write-Host "-------------------------------------------------------"
+              Write-Host "BERHASIL!"
+              Write-Host "Sekarang buka: https://localto.net/tunnel/tcpudp"
+              Write-Host "Cari kolom 'Url' untuk melihat alamat RDP Anda."
+              Write-Host "-------------------------------------------------------"
+          } else {
+              Write-Error "File localtonet.exe tidak ditemukan di dalam ZIP!"
+              exit 1
+          }
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          $i = 0
-          while($i -lt 360) {
-            $at = Get-Date -Format "HH:mm:ss"
-            Write-Host "RDP Active - Pulse at $at - Cek Dashboard untuk Port Terbaru"
-            Start-Sleep -Seconds 60
-            $i++
+          Write-Host "RDP Aktif. Workflow ini akan berjalan selama 6 jam."
+          for ($i = 0; $i -lt 360; $i++) {
+              $current = Get-Date -Format "HH:mm:ss"
+              Write-Host "Status: Online [$current] - Cek Dashboard LocalToNet untuk port terbaru"
+              Start-Sleep -Seconds 60
           }
