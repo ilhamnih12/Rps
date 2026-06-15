@@ -1,73 +1,43 @@
-name: LocalToNet RDP Final
+name: Chrome Remote Desktop RDP
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      auth_code:
+        description: 'Masukkan Kode PowerShell dari Google Remote Desktop'
+        required: true
 
 jobs:
-  rdp-setup:
+  setup-crd:
     runs-on: windows-2022
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Enable Remote Desktop
+      - name: Download & Install Chrome Remote Desktop
         shell: powershell
         run: |
-          # Mengaktifkan RDP dan Firewall
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+          $installer = "$env:TEMP\crd.msi"
+          Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile $installer
+          Start-Process msiexec.exe -ArgumentList "/i $installer /qn /norestart" -Wait
 
       - name: Set User Password
         shell: powershell
         run: |
-          # Set password untuk user runneradmin
           $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
-          Write-Host "User: $env:USERNAME"
-          Write-Host "Password: p@ssw0rd!"
 
-      - name: Download and Run LocalToNet CLI
+      - name: Activate Chrome Remote Desktop
         shell: powershell
         run: |
-          # 1. Download menggunakan link yang Anda berikan
-          Write-Host "Downloading LocalToNet CLI..."
-          $url = "https://localtonet.com/download/localtonet-win-64.zip"
-          Invoke-WebRequest -Uri $url -OutFile "ltn.zip"
-          
-          # 2. Extract file ke folder LTN
-          Write-Host "Extracting..."
-          Expand-Archive -Path "ltn.zip" -DestinationPath "LTN"
-          
-          # 3. Cari file .exe (untuk memastikan lokasi file tepat)
-          $ltnExe = Get-ChildItem -Path ".\LTN" -Filter "localtonet.exe" -Recurse | Select-Object -First 1
-          
-          if ($ltnExe) {
-              Write-Host "Menjalankan LocalToNet..."
-              $token = "w5RPJMFZ1bNydzWipCo7SB4aGfTsxkYjn"
-              
-              # Menjalankan dengan perintah authtoken agar semua tunnel di dashboard aktif
-              Start-Process $ltnExe.FullName -ArgumentList "authtoken $token" -NoNewWindow
-              
-              Write-Host "-------------------------------------------------------"
-              Write-Host "BERHASIL!"
-              Write-Host "Sekarang buka: https://localto.net/tunnel/tcpudp"
-              Write-Host "Cari kolom 'Url' untuk melihat alamat RDP Anda."
-              Write-Host "-------------------------------------------------------"
-          } else {
-              Write-Error "File localtonet.exe tidak ditemukan di dalam ZIP!"
-              exit 1
-          }
+          # Ini akan menjalankan kode yang Anda paste saat menjalankan workflow
+          ${{ github.event.inputs.auth_code }} -Pin 123456
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          Write-Host "RDP Aktif. Workflow ini akan berjalan selama 6 jam."
-          for ($i = 0; $i -lt 360; $i++) {
-              $current = Get-Date -Format "HH:mm:ss"
-              Write-Host "Status: Online [$current] - Cek Dashboard LocalToNet untuk port terbaru"
-              Start-Sleep -Seconds 60
+          Write-Host "RDP Siap! Buka https://remotedesktop.google.com/access"
+          Write-Host "Gunakan PIN: 123456"
+          $i = 0
+          while($i -lt 360) {
+            Write-Host "Keep Alive - Pulse $(Get-Date)"
+            Start-Sleep -Seconds 60
+            $i++
           }
