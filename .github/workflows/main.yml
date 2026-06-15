@@ -1,0 +1,53 @@
+name: Pinggy Setup
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  pinggy-setup:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download and Install OpenSSH
+        shell: powershell
+        run: |
+          Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+
+      - name: Enable Terminal Services
+        shell: powershell
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+
+      - name: Enable Remote Desktop Firewall
+        shell: powershell
+        run: |
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+      - name: Set User Authentication
+        shell: powershell
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+      - name: Set Local User Password
+        shell: powershell
+        run: |
+          $password = ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force
+          Set-LocalUser -Name "circleci" -Password $password
+
+      - name: Start Pinggy SSH Tunnel
+        shell: powershell
+        run: |
+          ssh -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 bswsLcGsP0H+tcp@free.pinggy.io
+
+      - name: Keep the Job Alive
+        shell: powershell
+        run: |
+          Start-Sleep -Seconds 300
