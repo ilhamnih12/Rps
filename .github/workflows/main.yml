@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       auth_code:
-        description: 'Masukkan Kode PowerShell dari Google Remote Desktop'
+        description: 'Masukan Kode PowerShell dari Google Remote Desktop'
         required: true
 
 jobs:
