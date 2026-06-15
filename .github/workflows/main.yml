@@ -47,7 +47,7 @@ jobs:
           
           if ($ltnExe) {
               Write-Host "Menjalankan LocalToNet..."
-              $token = "L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw"
+              $token = "w5RPJMFZ1bNydzWipCo7SB4aGfTsxkYjn"
               
               # Menjalankan dengan perintah authtoken agar semua tunnel di dashboard aktif
               Start-Process $ltnExe.FullName -ArgumentList "authtoken $token" -NoNewWindow
