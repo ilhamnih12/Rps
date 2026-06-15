@@ -1,4 +1,4 @@
-name: LocalToNet RDP Setup
+name: LocalToNet RDP - Auto Port
 
 on:
   push:
@@ -16,42 +16,41 @@ jobs:
       - name: Enable Remote Desktop
         shell: powershell
         run: |
-          # Aktifkan RDP
+          # Aktifkan fitur RDP di Windows Runner
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-          
-          # Berikan izin ke user saat ini
-          $username = $env:USERNAME
-          Write-Host "Configuring RDP for user: $username"
 
       - name: Set User Password
         shell: powershell
         run: |
-          # Mengganti password user runner agar bisa login RDP
+          # Mengatur password agar bisa login via RDP
           $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Pass: p@ssw0rd!"
 
-      - name: Start LocalToNet SSH Tunnel
+      - name: Start LocalToNet SSH Tunnel (Auto Port)
         shell: powershell
         run: |
-          # Menjalankan SSH di background (Start-Process)
-          # Menambahkan -N agar SSH tidak mencoba menjalankan command shell di server remote
-          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 8695:127.0.0.1:3389" -NoNewWindow
+          # Menggunakan -R0 untuk alokasi port otomatis dari server LocalToNet
+          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R0:127.0.0.1:3389" -NoNewWindow
           
-          Write-Host "LocalToNet Tunnel Started!"
-          Write-Host "Connect to: 42jdsvf1bb.localto.net port 8695"
-          Write-Host "Username: runneradmin atau $env:USERNAME"
-          Write-Host "Password: p@ssw0rd!"
+          Write-Host "-------------------------------------------------------"
+          Write-Host "TUNNEL SEDANG BERJALAN!"
+          Write-Host "Silakan cek Dashboard LocalToNet Anda untuk melihat PORT."
+          Write-Host "Link Dashboard: https://localto.net/dashboard"
+          Write-Host "-------------------------------------------------------"
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          Write-Host "RDP is ready. The session will stay alive for 6 hours."
-          # Loop selama 6 jam agar workflow tidak selesai
+          Write-Host "RDP Aktif. Sesi ini akan tetap terbuka selama 6 jam ke depan."
           $i = 0
+          # Loop selama 360 menit (6 jam)
           while($i -lt 360) {
-            Write-Host "Keep Alive - Pulse $(Get-Date)"
+            $currentTime = Get-Date -Format "HH:mm:ss"
+            Write-Host "Keep Alive - Pulse at $currentTime (Masih berjalan...)"
             Start-Sleep -Seconds 60
             $i++
           }
