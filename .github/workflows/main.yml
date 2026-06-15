@@ -2,10 +2,6 @@ name: Chrome Remote Desktop RDP
 
 on:
   workflow_dispatch:
-    inputs:
-      auth_code:
-        description: 'Masukan Kode PowerShell dari Google Remote Desktop'
-        required: true
 
 jobs:
   setup-crd:
