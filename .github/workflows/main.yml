@@ -40,7 +40,7 @@ jobs:
         shell: powershell
         run: |
           $password = ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force
-          Set-LocalUser -Name "circleci" -Password $password
+          Set-LocalUser -Name $env:USERNAME -Password $password
 
       - name: Start Pinggy SSH Tunnel
         shell: powershell
