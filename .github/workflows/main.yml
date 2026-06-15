@@ -1,54 +1,57 @@
-name: Pinggy Setup
+name: LocalToNet RDP Setup
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  pinggy-setup:
+  rdp-setup:
     runs-on: windows-2022
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download and Install OpenSSH
+      - name: Enable Remote Desktop
         shell: powershell
         run: |
-          Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-
-      - name: Enable Terminal Services
-        shell: powershell
-        run: |
+          # Aktifkan RDP
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-
-      - name: Enable Remote Desktop Firewall
-        shell: powershell
-        run: |
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-
-      - name: Set User Authentication
-        shell: powershell
-        run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+          
+          # Berikan izin ke user saat ini
+          $username = $env:USERNAME
+          Write-Host "Configuring RDP for user: $username"
 
-      - name: Set Local User Password
+      - name: Set User Password
         shell: powershell
         run: |
-          $password = ConvertTo-SecureString -AsPlainText "p@ssw0rd!" -Force
+          # Mengganti password user runner agar bisa login RDP
+          $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
 
-      - name: Start Pinggy SSH Tunnel
+      - name: Start LocalToNet SSH Tunnel
         shell: powershell
         run: |
-          Start-Process ssh -ArgumentList '-N -T -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 bswsLcGsP0H+tcp@free.pinggy.io' -NoNewWindow
-          Start-Sleep -Seconds 300
+          # Menjalankan SSH di background (Start-Process)
+          # Menambahkan -N agar SSH tidak mencoba menjalankan command shell di server remote
+          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 8695:127.0.0.1:3389" -NoNewWindow
+          
+          Write-Host "LocalToNet Tunnel Started!"
+          Write-Host "Connect to: 42jdsvf1bb.localto.net port 8695"
+          Write-Host "Username: runneradmin atau $env:USERNAME"
+          Write-Host "Password: p@ssw0rd!"
 
-      - name: Keep the Job Alive
+      - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          Start-Sleep -Seconds 300
+          Write-Host "RDP is ready. The session will stay alive for 6 hours."
+          # Loop selama 6 jam agar workflow tidak selesai
+          $i = 0
+          while($i -lt 360) {
+            Write-Host "Keep Alive - Pulse $(Get-Date)"
+            Start-Sleep -Seconds 60
+            $i++
+          }
