@@ -45,7 +45,7 @@ jobs:
       - name: Start Pinggy SSH Tunnel
         shell: powershell
         run: |
-          ssh -N -T -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 bswsLcGsP0H+tcp@free.pinggy.io &
+          Start-Process ssh -ArgumentList '-N -T -p 443 -R0:localhost:3389 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 bswsLcGsP0H+tcp@free.pinggy.io' -NoNewWindow
           Start-Sleep -Seconds 300
 
       - name: Keep the Job Alive
