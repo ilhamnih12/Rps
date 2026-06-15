@@ -1,4 +1,4 @@
-name: LocalToNet RDP Fixed
+name: LocalToNet RDP (Official CLI Method)
 
 on:
   push:
@@ -26,27 +26,33 @@ jobs:
           $password = ConvertTo-SecureString "p@ssw0rd!" -AsPlainText -Force
           Set-LocalUser -Name $env:USERNAME -Password $password
 
-      - name: Start LocalToNet SSH Tunnel
+      - name: Install & Start LocalToNet CLI
         shell: powershell
         run: |
-          # Perbaikan: Menggunakan port 4272 sesuai foto dashboard
-          # Format: -R [RemotePort]:[LocalIP]:[LocalPort]
-          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 6687:127.0.0.1:3389" -NoNewWindow
+          # 1. Download LocalToNet CLI
+          Invoke-WebRequest -Uri "https://localto.net/download/localtonet-windows-x64.zip" -OutFile "localtonet.zip"
+          Expand-Archive -Path "localtonet.zip" -DestinationPath "."
+          
+          # 2. Jalankan dengan AuthToken Anda
+          # Token diambil dari username SSH yang Anda berikan tadi
+          $authToken = "L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw"
+          
+          Write-Host "Starting LocalToNet..."
+          Start-Process ".\localtonet.exe" -ArgumentList "authtoken $authToken" -NoNewWindow
           
           Write-Host "-------------------------------------------------------"
-          Write-Host "TUNNEL BERHASIL AKTIF!"
-          Write-Host "Alamat RDP: 42jdsvf1bb.localto.net:6687"
-          Write-Host "Username  : runneradmin"
-          Write-Host "Password  : p@ssw0rd!"
+          Write-Host "LOKASI CEK PORT:"
+          Write-Host "Buka: https://localto.net/tunnel/tcpudp"
+          Write-Host "Gunakan alamat & port yang muncul di kolom 'Url'"
           Write-Host "-------------------------------------------------------"
 
       - name: Keep Alive (6 Hours)
         shell: powershell
         run: |
-          Write-Host "RDP Aktif. Jangan tutup tab GitHub Actions ini."
           $i = 0
           while($i -lt 360) {
-            Write-Host "Keep Alive - Pulse $(Get-Date)"
+            $at = Get-Date -Format "HH:mm:ss"
+            Write-Host "RDP Active - Pulse at $at - Cek Dashboard untuk Port Terbaru"
             Start-Sleep -Seconds 60
             $i++
           }
