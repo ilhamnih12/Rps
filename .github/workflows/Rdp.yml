@@ -27,8 +27,7 @@ jobs:
       - name: Activate Chrome Remote Desktop
         shell: powershell
         run: |
-          # Ini akan menjalankan kode yang Anda paste saat menjalankan workflow
-          ${{ github.event.inputs.auth_code }} -Pin 123456
+          & "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" --code="${{ github.event.inputs.auth_code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME -Pin 123456
 
       - name: Keep Alive (6 Hours)
         shell: powershell
