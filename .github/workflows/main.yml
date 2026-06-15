@@ -31,11 +31,11 @@ jobs:
         run: |
           # Perbaikan: Menggunakan port 4272 sesuai foto dashboard
           # Format: -R [RemotePort]:[LocalIP]:[LocalPort]
-          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 4272:127.0.0.1:3389" -NoNewWindow
+          Start-Process ssh -ArgumentList "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -N -p 223 -l L7tMYNolxPhkPk0mmpK5KwVP5Gei_OT-7NlP4HsfD7atW1Xce-8ukwVjwwKicDvRYQTBI47K_jbzAnp9JTpeRw 42jdsvf1bb.localto.net -R 6687:127.0.0.1:3389" -NoNewWindow
           
           Write-Host "-------------------------------------------------------"
           Write-Host "TUNNEL BERHASIL AKTIF!"
-          Write-Host "Alamat RDP: 42jdsvf1bb.localto.net:4272"
+          Write-Host "Alamat RDP: 42jdsvf1bb.localto.net:6687"
           Write-Host "Username  : runneradmin"
           Write-Host "Password  : p@ssw0rd!"
           Write-Host "-------------------------------------------------------"
